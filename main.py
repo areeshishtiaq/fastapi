@@ -1,7 +1,8 @@
 import json
 import os
 from typing import Dict, Any, List, Optional
-from fastapi import FastAPI, HTTPException
+from fastapi import FastAPI, HTTPException, Request
+from fastapi.responses import HTMLResponse
 from pydantic import BaseModel
 from openai import OpenAI
 from dotenv import load_dotenv
@@ -15,6 +16,11 @@ app = FastAPI(title="Topical Map Generator API")
 
 # Initialize OpenAI client
 client = OpenAI(api_key=os.getenv("OPENAI_API_KEY"))
+
+# Add a simple home page route
+@app.get("/", response_class=HTMLResponse)
+async def home():
+    return {"message": "Hello World"}
 
 PROMPT = """
 Create a topical map for the keyword: [keyword]
@@ -139,6 +145,4 @@ async def generate_topical_map(request: KeywordRequest) -> TopicalMapResponse:
 
 if __name__ == "__main__":
     import uvicorn
-    uvicorn.run(app, host="0.0.0.0", port=443)
-
-
+    uvicorn.run(app, host="0.0.0.0", port=8080)
