@@ -23,6 +23,7 @@ def test_generate_topical_map_success(mock_openai_client):
         "money_keyword": "fat loss diet",
         "pillar_pages": [
             {
+                "title": "Nutrition Fundamentals",
                 "supporting_pages": [
                     "Understanding Macronutrients and Their Role in Fat Loss",
                     "The Importance of Portion Control and Caloric Deficit",
@@ -35,6 +36,7 @@ def test_generate_topical_map_success(mock_openai_client):
                 ]
             },
             {
+                "title": "Exercise and Physical Activity",
                 "supporting_pages": [
                     "Incorporating Strength Training into Your Routine",
                     "The Benefits of High-Intensity Interval Training (HIIT)",
@@ -47,6 +49,7 @@ def test_generate_topical_map_success(mock_openai_client):
                 ]
             },
             {
+                "title": "Lifestyle Factors",
                 "supporting_pages": [
                     "The Role of Sleep in Fat Loss",
                     "Managing Stress to Prevent Emotional Eating",
@@ -59,6 +62,7 @@ def test_generate_topical_map_success(mock_openai_client):
                 ]
             },
             {
+                "title": "Personalization and Sustainability",
                 "supporting_pages": [
                     "Personalizing Your Fat Loss Diet Plan",
                     "The Importance of Tracking Progress",
@@ -113,6 +117,7 @@ def test_generate_topical_map_success(mock_openai_client):
     
     # Verify the content of the first pillar page
     first_pillar = response_data["data"]["pillar_pages"][0]
+    assert first_pillar["title"] == mock_openai_response["pillar_pages"][0]["title"]
     assert first_pillar["supporting_pages"] == mock_openai_response["pillar_pages"][0]["supporting_pages"]
     assert first_pillar["supporting_blog_topics"] == mock_openai_response["pillar_pages"][0]["supporting_blog_topics"]
 

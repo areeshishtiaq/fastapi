@@ -30,6 +30,7 @@ return the response in json format:
     "money_keyword": "string",
     "pillar_pages": [
         {
+            "title": "string",
             "supporting_pages": ["string", ...],
             "supporting_blog_topics": ["string", ...]
         },
@@ -64,6 +65,7 @@ def parse_json_to_topical_map(json_data: Dict[str, Any]) -> TopicalMap:
     for pillar_page_data in pillar_pages_data:
         # Create PillarPage object
         pillar_page = PillarPage(
+            title=pillar_page_data.get("title", ""),
             supporting_pages=pillar_page_data.get("supporting_pages", []),
             supporting_blog_topics=pillar_page_data.get("supporting_blog_topics", [])
         )
@@ -80,7 +82,7 @@ async def generate_topical_map(request: KeywordRequest) -> TopicalMapResponse:
         
         # Call OpenAI API
         response = client.chat.completions.create(
-            model="gpt-4",  # You can change this to the appropriate model
+            model="gpt-4.1-nano",  # You can change this to the appropriate model
             messages=[
                 {"role": "system", "content": "You are a helpful assistant that creates topical maps in the specified JSON format."},
                 {"role": "user", "content": customized_prompt}
@@ -109,6 +111,7 @@ async def generate_topical_map(request: KeywordRequest) -> TopicalMapResponse:
                     "money_keyword": topical_map.money_keyword,
                     "pillar_pages": [
                         {
+                            "title": pillar.title,
                             "supporting_pages": pillar.supporting_pages,
                             "supporting_blog_topics": pillar.supporting_blog_topics
                         } for pillar in topical_map.pillar_pages
