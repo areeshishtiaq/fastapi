@@ -3,3 +3,4 @@ pydantic==2.11.4
 openai==1.77.0
 python-dotenv==1.1.0
 uvicorn==0.34.2
+gunicorn==23.0.0
