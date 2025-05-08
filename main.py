@@ -41,7 +41,7 @@ The topical map should be structured as follows:
 Stage 1: Main Topic
 Stage 2: Pillar Pages (3-5 major content themes)
 Stage 3: Supporting Content under each Pillar Page (2-3 items per pillar)
-Stage 4: Blog Post Ideas under each Supporting Content (2-3 blog titles each)
+Stage 4: Blog Post Ideas under each Supporting Content (5-7 blog titles each)
 
 return the response in json format:
 {

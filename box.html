@@ -1,0 +1,225 @@
+<!-- HTML Input Section -->
+<div id="word-search">
+    <div id="response-output"></div>
+    <input type="text" id="word-input" placeholder="Enter a word">
+    <button id="search-btn">Search</button>
+</div>
+<!-- Styling for visual structure -->
+<style>
+    body {
+        /*         background: linear-gradient(135deg, #300964, #190533); */
+        font-family: sans-serif;
+        margin: 0;
+        padding: 20px;
+    }
+
+    #word-search {
+        font-family: sans-serif;
+        color: white;
+        max-width: 1200px;
+        margin: 0 auto;
+    }
+
+    input,
+    button {
+        padding: 8px;
+        margin: 5px;
+    }
+
+    #response-output {
+        margin-top: 20px;
+        padding: 20px;
+        border-radius: 10px;
+        overflow: auto;
+        min-height: 500px;
+        position: relative;
+        background: rgba(30, 6, 72, 0.4);
+    }
+
+    .topical-map-container {
+        display: flex;
+        width: 100%;
+        flex-direction: column;
+        padding: 20px 0;
+    }
+
+    .topic-row {
+        display: flex;
+        margin-bottom: 20px;
+    }
+
+    .column-header {
+        font-size: 18px;
+        font-weight: bold;
+        margin-bottom: 15px;
+        color: white;
+    }
+
+    .money-keyword-column {
+        width: 20%;
+        padding-right: 20px;
+    }
+
+    .pillar-pages-column {
+        width: 25%;
+        padding-right: 20px;
+    }
+
+    .supporting-pages-column {
+        width: 25%;
+        padding-right: 20px;
+    }
+
+    .supporting-blogs-column {
+        width: 30%;
+    }
+
+    .money-keyword-box {
+        background: #350b70;
+        padding: 15px;
+        border-radius: 10px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        height: 60px;
+        font-weight: bold;
+        text-align: center;
+    }
+
+    .pillar-box {
+        background: #350b70;
+        padding: 15px;
+        border-radius: 10px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        min-height: 60px;
+        font-weight: bold;
+        margin-bottom: 20px;
+        text-align: center;
+    }
+
+    .supporting-page-box {
+        background: #4d1c8a;
+        padding: 10px 15px;
+        border-radius: 10px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        min-height: 40px;
+        margin-bottom: 15px;
+        text-align: center;
+    }
+
+    .supporting-blogs-box {
+        background: rgba(77, 28, 138, 0.6);
+        padding: 15px;
+        border-radius: 10px;
+        margin-bottom: 20px;
+    }
+
+    .supporting-blogs-box ul {
+        list-style-type: disc;
+        padding-left: 20px;
+        margin: 0;
+    }
+
+    .supporting-blogs-box li {
+        margin-bottom: 10px;
+    }
+
+    .topic-group {
+        margin-bottom: 30px;
+    }
+</style>
+
+<!-- JavaScript Fetch Logic -->
+<script>
+    document.getElementById('search-btn').addEventListener('click', function () {
+        const word = document.getElementById('word-input').value.trim();
+
+        if (!word) {
+            alert('Please enter a word!');
+            return;
+        }
+
+        document.getElementById('response-output').innerHTML = 'Loading...';
+
+        fetch('https://fastapi-ashtech.azurewebsites.net/generate-topical-map', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({ keyword: word })
+        })
+            .then(response => response.json())
+            .then(result => {
+                if (result.success && result.data) {
+                    document.getElementById('response-output').innerHTML = renderTopicalMap(result.data);
+                } else {
+                    document.getElementById('response-output').innerHTML = 'Failed to load topical map.';
+                }
+            })
+            .catch(error => {
+                document.getElementById('response-output').innerHTML = 'Error occurred: ' + error;
+            });
+    });
+
+    function renderTopicalMap(data) {
+        let html = `
+        <div class="topical-map-container">
+            <div class="topic-row">
+                <div class="money-keyword-column">
+                    <div class="column-header">Money Keyword</div>
+                </div>
+                <div class="pillar-pages-column">
+                    <div class="column-header">Pillar Pages</div>
+                </div>
+                <div class="supporting-pages-column">
+                    <div class="column-header">Supporting Pages</div>
+                </div>
+                <div class="supporting-blogs-column">
+                    <div class="column-header">Supporting Blog Topics</div>
+                </div>
+            </div>`;
+
+        // For each pillar, create a row with all its components
+        data.pillar_pages.forEach((pillar, index) => {
+            html += `
+            <div class="topic-group" data-group="${index}">
+                <div class="topic-row">
+                    <!-- Money Keyword (only show in first row) -->
+                    <div class="money-keyword-column">
+                        ${index === 0 ? `<div class="money-keyword-box">${data.money_keyword}</div>` : ''}
+                    </div>
+                    
+                    <!-- Pillar Page -->
+                    <div class="pillar-pages-column">
+                        <div class="pillar-box">${pillar.title}</div>
+                    </div>
+                    
+                    <!-- Supporting Pages -->
+                    <div class="supporting-pages-column">
+                        ${pillar.supporting_pages.map(page =>
+                `<div class="supporting-page-box">${page}</div>`
+            ).join('')}
+                    </div>
+                    
+                    <!-- Supporting Blog Topics -->
+                    <div class="supporting-blogs-column">
+                        <div class="supporting-blogs-box">
+                            <ul>
+                                ${pillar.supporting_blog_topics.map(topic =>
+                `<li>${topic}</li>`
+            ).join('')}
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+            </div>`;
+        });
+
+        html += '</div>';
+        return html;
+    }
+</script>
