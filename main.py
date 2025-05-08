@@ -3,6 +3,7 @@ import os
 from typing import Dict, Any, List, Optional
 from fastapi import FastAPI, HTTPException, Request
 from fastapi.responses import HTMLResponse
+from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
 from openai import OpenAI
 from dotenv import load_dotenv
@@ -14,10 +15,21 @@ load_dotenv()
 # Initialize FastAPI app
 app = FastAPI(title="Topical Map Generator API")
 
+# Configure CORS middleware
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["*"],  # Allows all origins
+    allow_credentials=True,
+    allow_methods=["*"],  # Allows all methods
+    allow_headers=["*"],  # Allows all headers
+)
+
 # Initialize OpenAI client
 client = OpenAI(api_key=os.getenv("OPENAI_API_KEY"))
 
 # Add a simple home page route
+
+
 @app.get("/", response_class=HTMLResponse)
 async def home():
     return {"message": "Hello World"}
@@ -45,27 +57,30 @@ return the response in json format:
 }
 """
 
+
 class KeywordRequest(BaseModel):
     keyword: str
+
 
 class TopicalMapResponse(BaseModel):
     success: bool
     data: Optional[Dict[str, Any]] = None
     error: Optional[str] = None
 
+
 def parse_json_to_topical_map(json_data: Dict[str, Any]) -> TopicalMap:
     """
     Parse JSON data into a TopicalMap object.
-    
+
     Args:
         json_data: A dictionary containing the JSON data
-                  
+
     Returns:
         TopicalMap: A populated TopicalMap object
     """
     # Create TopicalMap with the money keyword
     topical_map = TopicalMap(json_data.get("money_keyword", ""))
-    
+
     # Process pillar pages if they exist
     pillar_pages_data = json_data.get("pillar_pages", [])
     for pillar_page_data in pillar_pages_data:
@@ -73,19 +88,21 @@ def parse_json_to_topical_map(json_data: Dict[str, Any]) -> TopicalMap:
         pillar_page = PillarPage(
             title=pillar_page_data.get("title", ""),
             supporting_pages=pillar_page_data.get("supporting_pages", []),
-            supporting_blog_topics=pillar_page_data.get("supporting_blog_topics", [])
+            supporting_blog_topics=pillar_page_data.get(
+                "supporting_blog_topics", [])
         )
         # Add to topical map
         topical_map.add_topic(pillar_page)
-    
+
     return topical_map
+
 
 @app.post("/generate-topical-map", response_model=TopicalMapResponse)
 async def generate_topical_map(request: KeywordRequest) -> TopicalMapResponse:
     try:
         # Replace [keyword] in the prompt with the user-provided keyword
         customized_prompt = PROMPT.replace("[keyword]", request.keyword)
-        
+
         # Call OpenAI API
         response = client.chat.completions.create(
             model="gpt-4.1-nano",  # You can change this to the appropriate model
@@ -95,23 +112,23 @@ async def generate_topical_map(request: KeywordRequest) -> TopicalMapResponse:
             ],
             temperature=0.7,
         )
-        
+
         # Extract response content
         content = response.choices[0].message.content
-        
+
         # Try to find and extract JSON from the response
         try:
             # Find JSON content (in case there's additional text)
             json_start = content.find('{')
             json_end = content.rfind('}') + 1
-            
+
             if json_start >= 0 and json_end > json_start:
                 json_content = content[json_start:json_end]
                 json_data = json.loads(json_content)
-                
+
                 # Parse the JSON into our data model
                 topical_map = parse_json_to_topical_map(json_data)
-                
+
                 # Convert to dict for response
                 result = {
                     "money_keyword": topical_map.money_keyword,
@@ -123,20 +140,20 @@ async def generate_topical_map(request: KeywordRequest) -> TopicalMapResponse:
                         } for pillar in topical_map.pillar_pages
                     ]
                 }
-                
+
                 return TopicalMapResponse(success=True, data=result)
             else:
                 return TopicalMapResponse(
                     success=False,
                     error="Could not find valid JSON in the API response"
                 )
-                
+
         except json.JSONDecodeError as e:
             return TopicalMapResponse(
                 success=False,
                 error=f"Failed to parse JSON: {str(e)}"
             )
-            
+
     except Exception as e:
         return TopicalMapResponse(
             success=False,
@@ -146,5 +163,3 @@ async def generate_topical_map(request: KeywordRequest) -> TopicalMapResponse:
 if __name__ == "__main__":
     import uvicorn
     uvicorn.run(app, host="0.0.0.0", port=8000)
-
-
