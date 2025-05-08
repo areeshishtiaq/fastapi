@@ -1,8 +1,13 @@
 <!-- HTML Input Section -->
 <div id="word-search">
     <div id="response-output"></div>
-    <input type="text" id="word-input" placeholder="Enter a word">
-    <button id="search-btn">Search</button>
+    <div class="search-controls">
+        <input type="text" id="word-input" placeholder="Enter your Money Keyword">
+        <div class="button-container">
+            <button id="search-btn">Create Topical Map</button>
+            <button id="refresh-btn">Refresh</button>
+        </div>
+    </div>
 </div>
 <!-- Styling for visual structure -->
 <style>
@@ -20,10 +25,42 @@
         margin: 0 auto;
     }
 
-    input,
-    button {
-        padding: 8px;
+    .search-controls {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        margin: 20px 0;
+    }
+
+    input {
+        padding: 10px;
         margin: 5px;
+        width: 300px;
+        border-radius: 5px;
+        border: 1px solid #ccc;
+        font-size: 16px;
+    }
+
+    .button-container {
+        display: flex;
+        gap: 10px;
+        margin-top: 10px;
+    }
+
+    button {
+        padding: 10px 20px;
+        margin: 5px;
+        background: #4d1c8a;
+        color: white;
+        border: none;
+        border-radius: 5px;
+        cursor: pointer;
+        font-size: 16px;
+        transition: background 0.3s;
+    }
+
+    button:hover {
+        background: #350b70;
     }
 
     #response-output {
@@ -34,6 +71,65 @@
         min-height: 500px;
         position: relative;
         background: rgba(30, 6, 72, 0.4);
+    }
+
+    /* Loading screen styles */
+    .loading-container {
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+        align-items: center;
+        height: 100%;
+        width: 100%;
+        background: linear-gradient(135deg, #4d1c8a, #300964);
+        border-radius: 10px;
+        position: absolute;
+        top: 0;
+        left: 0;
+        z-index: 100;
+    }
+
+    .loading-title {
+        font-size: 32px;
+        font-weight: bold;
+        color: white;
+        margin-bottom: 10px;
+        text-align: center;
+    }
+
+    .loading-subtitle {
+        font-size: 18px;
+        color: rgba(255, 255, 255, 0.8);
+        margin-bottom: 40px;
+        text-align: center;
+    }
+
+    .spinner {
+        display: inline-block;
+        width: 80px;
+        height: 80px;
+        margin: 0 auto;
+    }
+
+    .spinner:after {
+        content: " ";
+        display: block;
+        width: 64px;
+        height: 64px;
+        margin: 8px;
+        border-radius: 50%;
+        border: 6px solid #ccc;
+        border-color: #ccc transparent #ccc transparent;
+        animation: spinner 1.2s linear infinite;
+    }
+
+    @keyframes spinner {
+        0% {
+            transform: rotate(0deg);
+        }
+        100% {
+            transform: rotate(360deg);
+        }
     }
 
     .topical-map-container {
@@ -143,7 +239,13 @@
             return;
         }
 
-        document.getElementById('response-output').innerHTML = 'Loading...';
+        // Show loading screen
+        document.getElementById('response-output').innerHTML = `
+            <div class="loading-container">
+                <div class="loading-title">Creating Topical Map...</div>
+                <div class="loading-subtitle">It may take a few seconds!</div>
+                <div class="spinner"></div>
+            </div>`;
 
         fetch('https://fastapi-ashtech.azurewebsites.net/generate-topical-map', {
             method: 'POST',
@@ -163,6 +265,12 @@
             .catch(error => {
                 document.getElementById('response-output').innerHTML = 'Error occurred: ' + error;
             });
+    });
+    
+    // Add refresh button functionality
+    document.getElementById('refresh-btn').addEventListener('click', function() {
+        document.getElementById('word-input').value = '';
+        document.getElementById('response-output').innerHTML = '';
     });
 
     function renderTopicalMap(data) {
