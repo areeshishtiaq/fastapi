@@ -1,7 +1,8 @@
 <!-- HTML Input Section -->
 <div id="word-search">
     <div id="response-output"></div>
-    <div class="search-controls">
+    <div class="search-controls centered">
+        <h2>Create a detailed Topical Map</h2>
         <input type="text" id="word-input" placeholder="Enter your Money Keyword">
         <div class="button-container">
             <button id="search-btn">Create Topical Map</button>
@@ -11,18 +12,22 @@
 </div>
 <!-- Styling for visual structure -->
 <style>
-    body {
-        /*         background: linear-gradient(135deg, #300964, #190533); */
-        font-family: sans-serif;
-        margin: 0;
-        padding: 20px;
-    }
+    /*     body {
+            background: linear-gradient(135deg, #300964, #190533);
+            font-family: sans-serif;
+            margin: 0;
+            padding: 20px;
+        } */
 
     #word-search {
         font-family: sans-serif;
         color: white;
         max-width: 1200px;
         margin: 0 auto;
+        min-height: 80vh;
+        display: flex;
+        flex-direction: column;
+        position: relative;
     }
 
     .search-controls {
@@ -30,11 +35,30 @@
         flex-direction: column;
         align-items: center;
         margin: 20px 0;
+        padding: 40px;
+        border-radius: 10px;
+        background: rgba(77, 28, 138, 0.4);
+    }
+
+    .search-controls.centered {
+        position: absolute;
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -50%);
+        width: 80%;
+        max-width: 600px;
+    }
+
+    .search-controls h2 {
+        margin-top: 0;
+        margin-bottom: 20px;
+        color: white;
+        text-align: center;
     }
 
     input {
         padding: 10px;
-        margin: 5px;
+        margin: 15px 5px;
         width: 300px;
         border-radius: 5px;
         border: 1px solid #ccc;
@@ -71,6 +95,7 @@
         min-height: 500px;
         position: relative;
         background: rgba(30, 6, 72, 0.4);
+        display: none;
     }
 
     /* Loading screen styles */
@@ -127,6 +152,7 @@
         0% {
             transform: rotate(0deg);
         }
+
         100% {
             transform: rotate(360deg);
         }
@@ -231,6 +257,11 @@
 
 <!-- JavaScript Fetch Logic -->
 <script>
+    // Center the search controls initially
+    document.addEventListener('DOMContentLoaded', function () {
+        document.querySelector('.search-controls').classList.add('centered');
+    });
+
     document.getElementById('search-btn').addEventListener('click', function () {
         const word = document.getElementById('word-input').value.trim();
 
@@ -239,13 +270,20 @@
             return;
         }
 
+        // Move search controls to bottom by removing centered class
+        document.querySelector('.search-controls').classList.remove('centered');
+
+        // Show the response output area
+        const responseOutput = document.getElementById('response-output');
+        responseOutput.style.display = 'block';
+
         // Show loading screen
-        document.getElementById('response-output').innerHTML = `
-            <div class="loading-container">
-                <div class="loading-title">Creating Topical Map...</div>
-                <div class="loading-subtitle">It may take a few seconds!</div>
-                <div class="spinner"></div>
-            </div>`;
+        responseOutput.innerHTML = `
+                <div class="loading-container">
+                    <div class="loading-title">Creating Topical Map...</div>
+                    <div class="loading-subtitle">It may take a few seconds!</div>
+                    <div class="spinner"></div>
+                </div>`;
 
         fetch('https://fastapi-ashtech.azurewebsites.net/generate-topical-map', {
             method: 'POST',
@@ -266,65 +304,73 @@
                 document.getElementById('response-output').innerHTML = 'Error occurred: ' + error;
             });
     });
-    
+
     // Add refresh button functionality
-    document.getElementById('refresh-btn').addEventListener('click', function() {
+    document.getElementById('refresh-btn').addEventListener('click', function () {
+        // Clear the input and results
         document.getElementById('word-input').value = '';
-        document.getElementById('response-output').innerHTML = '';
+
+        // Hide response output
+        const responseOutput = document.getElementById('response-output');
+        responseOutput.style.display = 'none';
+        responseOutput.innerHTML = '';
+
+        // Move search controls back to center
+        document.querySelector('.search-controls').classList.add('centered');
     });
 
     function renderTopicalMap(data) {
         let html = `
-        <div class="topical-map-container">
-            <div class="topic-row">
-                <div class="money-keyword-column">
-                    <div class="column-header">Money Keyword</div>
-                </div>
-                <div class="pillar-pages-column">
-                    <div class="column-header">Pillar Pages</div>
-                </div>
-                <div class="supporting-pages-column">
-                    <div class="column-header">Supporting Pages</div>
-                </div>
-                <div class="supporting-blogs-column">
-                    <div class="column-header">Supporting Blog Topics</div>
-                </div>
-            </div>`;
+            <div class="topical-map-container">
+                <div class="topic-row">
+                    <div class="money-keyword-column">
+                        <div class="column-header">Money Keyword</div>
+                    </div>
+                    <div class="pillar-pages-column">
+                        <div class="column-header">Pillar Pages</div>
+                    </div>
+                    <div class="supporting-pages-column">
+                        <div class="column-header">Supporting Pages</div>
+                    </div>
+                    <div class="supporting-blogs-column">
+                        <div class="column-header">Supporting Blog Topics</div>
+                    </div>
+                </div>`;
 
         // For each pillar, create a row with all its components
         data.pillar_pages.forEach((pillar, index) => {
             html += `
-            <div class="topic-group" data-group="${index}">
-                <div class="topic-row">
-                    <!-- Money Keyword (only show in first row) -->
-                    <div class="money-keyword-column">
-                        ${index === 0 ? `<div class="money-keyword-box">${data.money_keyword}</div>` : ''}
-                    </div>
-                    
-                    <!-- Pillar Page -->
-                    <div class="pillar-pages-column">
-                        <div class="pillar-box">${pillar.title}</div>
-                    </div>
-                    
-                    <!-- Supporting Pages -->
-                    <div class="supporting-pages-column">
-                        ${pillar.supporting_pages.map(page =>
+                <div class="topic-group" data-group="${index}">
+                    <div class="topic-row">
+                        <!-- Money Keyword (only show in first row) -->
+                        <div class="money-keyword-column">
+                            ${index === 0 ? `<div class="money-keyword-box">${data.money_keyword}</div>` : ''}
+                        </div>
+                        
+                        <!-- Pillar Page -->
+                        <div class="pillar-pages-column">
+                            <div class="pillar-box">${pillar.title}</div>
+                        </div>
+                        
+                        <!-- Supporting Pages -->
+                        <div class="supporting-pages-column">
+                            ${pillar.supporting_pages.map(page =>
                 `<div class="supporting-page-box">${page}</div>`
             ).join('')}
-                    </div>
-                    
-                    <!-- Supporting Blog Topics -->
-                    <div class="supporting-blogs-column">
-                        <div class="supporting-blogs-box">
-                            <ul>
-                                ${pillar.supporting_blog_topics.map(topic =>
+                        </div>
+                        
+                        <!-- Supporting Blog Topics -->
+                        <div class="supporting-blogs-column">
+                            <div class="supporting-blogs-box">
+                                <ul>
+                                    ${pillar.supporting_blog_topics.map(topic =>
                 `<li>${topic}</li>`
             ).join('')}
-                            </ul>
+                                </ul>
+                            </div>
                         </div>
                     </div>
-                </div>
-            </div>`;
+                </div>`;
         });
 
         html += '</div>';
