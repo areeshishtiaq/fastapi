@@ -8,6 +8,7 @@ from pydantic import BaseModel
 from openai import OpenAI
 from dotenv import load_dotenv
 from datamodel import TopicalMap, PillarPage
+from prompts import TOPICAL_MAP_PROMPT, FRIENDLY_META_TAGS_PROMPT
 
 # Load environment variables from .env file
 load_dotenv()
@@ -34,35 +35,18 @@ client = OpenAI(api_key=os.getenv("OPENAI_API_KEY"))
 async def home():
     return {"message": "Hello World"}
 
-PROMPT = """
-Create a topical map for the keyword: [keyword]
-
-The topical map should be structured as follows:
-Stage 1: Main Topic
-Stage 2: Pillar Pages (3-5 major content themes)
-Stage 3: Supporting Content under each Pillar Page (2-3 items per pillar)
-Stage 4: Blog Post Ideas under each Supporting Content (5-7 blog titles each)
-
-return the response in json format:
-{
-    "money_keyword": "string",
-    "pillar_pages": [
-        {
-            "title": "string",
-            "supporting_pages": ["string", ...],
-            "supporting_blog_topics": ["string", ...]
-        },
-        ...
-    ]
-}
-"""
-
 
 class KeywordRequest(BaseModel):
     keyword: str
 
 
-class TopicalMapResponse(BaseModel):
+class MetaTagsRequest(BaseModel):
+    primary_keyword: str
+    secondary_keyword: str
+    brand_name: str
+
+
+class ApiResponse(BaseModel):
     success: bool
     data: Optional[Dict[str, Any]] = None
     error: Optional[str] = None
@@ -97,11 +81,11 @@ def parse_json_to_topical_map(json_data: Dict[str, Any]) -> TopicalMap:
     return topical_map
 
 
-@app.post("/generate-topical-map", response_model=TopicalMapResponse)
-async def generate_topical_map(request: KeywordRequest) -> TopicalMapResponse:
+@app.post("/generate-topical-map", response_model=ApiResponse)
+async def generate_topical_map(request: KeywordRequest) -> ApiResponse:
     try:
         # Replace [keyword] in the prompt with the user-provided keyword
-        customized_prompt = PROMPT.replace("[keyword]", request.keyword)
+        customized_prompt = TOPICAL_MAP_PROMPT.replace("[keyword]", request.keyword)
 
         # Call OpenAI API
         response = client.chat.completions.create(
@@ -111,10 +95,13 @@ async def generate_topical_map(request: KeywordRequest) -> TopicalMapResponse:
                 {"role": "user", "content": customized_prompt}
             ],
             temperature=0.7,
-        )
-
-        # Extract response content
+        )        # Extract response content
         content = response.choices[0].message.content
+        if content is None:
+            return ApiResponse(
+                success=False,
+                error="No content returned from the API"
+            )
 
         # Try to find and extract JSON from the response
         try:
@@ -137,27 +124,91 @@ async def generate_topical_map(request: KeywordRequest) -> TopicalMapResponse:
                             "title": pillar.title,
                             "supporting_pages": pillar.supporting_pages,
                             "supporting_blog_topics": pillar.supporting_blog_topics
-                        } for pillar in topical_map.pillar_pages
-                    ]
+                        } for pillar in topical_map.pillar_pages                    ]
                 }
 
-                return TopicalMapResponse(success=True, data=result)
+                return ApiResponse(success=True, data=result)
             else:
-                return TopicalMapResponse(
+                return ApiResponse(
                     success=False,
                     error="Could not find valid JSON in the API response"
                 )
 
         except json.JSONDecodeError as e:
-            return TopicalMapResponse(
+            return ApiResponse(
                 success=False,
                 error=f"Failed to parse JSON: {str(e)}"
             )
 
     except Exception as e:
-        return TopicalMapResponse(
+        return ApiResponse(
             success=False,
             error=f"Error generating topical map: {str(e)}"
+        )
+
+
+@app.post("/generate-meta-tags", response_model=ApiResponse)
+async def generate_meta_tags(request: MetaTagsRequest) -> ApiResponse:
+    try:
+        # Replace placeholders in the prompt with user-provided values
+        customized_prompt = (
+            FRIENDLY_META_TAGS_PROMPT
+            .replace("[primary_keyword]", request.primary_keyword)
+            .replace("[secondary_keyword]", request.secondary_keyword)
+            .replace("[brand_name]", request.brand_name)
+        )
+
+        # Call OpenAI API
+        response = client.chat.completions.create(
+            model="gpt-4.1-nano",  # You can change this to the appropriate model
+            messages=[
+                {"role": "system", "content": "You are a helpful assistant that creates SEO-friendly meta tags in the specified JSON format."},
+                {"role": "user", "content": customized_prompt}
+            ],
+            temperature=0.7,
+        )
+
+        # Extract response content
+        content = response.choices[0].message.content
+        if content is None:
+            return ApiResponse(
+                success=False,
+                error="No content returned from the API"
+            )
+
+        # Try to find and extract JSON from the response
+        try:
+            # Find JSON content (in case there's additional text)
+            json_start = content.find('{')
+            json_end = content.rfind('}') + 1
+
+            if json_start >= 0 and json_end > json_start:
+                json_content = content[json_start:json_end]
+                json_data = json.loads(json_content)                # Validate that the required fields are present
+                if "friendly_title" not in json_data or "meta_description" not in json_data:
+                    return ApiResponse(
+                        success=False,
+                        error="API response is missing required fields"
+                    )
+
+                # Return the meta tags data
+                return ApiResponse(success=True, data=json_data)
+            else:
+                return ApiResponse(
+                    success=False,
+                    error="Could not find valid JSON in the API response"
+                )
+
+        except json.JSONDecodeError as e:
+            return ApiResponse(
+                success=False,
+                error=f"Failed to parse JSON: {str(e)}"
+            )
+
+    except Exception as e:
+        return ApiResponse(
+            success=False,
+            error=f"Error generating meta tags: {str(e)}"
         )
 
 if __name__ == "__main__":

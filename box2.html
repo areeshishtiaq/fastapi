@@ -1,0 +1,323 @@
+<!-- HTML Input Section -->
+<div id="word-search">
+    <div id="response-output"></div>
+    <div class="search-controls centered">
+        <h2>Create SEO Friendly Meta Tags</h2>
+        <div class="input-group">
+            <label for="primary-keyword">Primary Keyword:</label>
+            <input type="text" id="primary-keyword" placeholder="Enter your Primary Keyword">
+        </div>
+        <div class="input-group">
+            <label for="secondary-keyword">Secondary Keyword:</label>
+            <input type="text" id="secondary-keyword" placeholder="Enter your Secondary Keyword">
+        </div>
+        <div class="input-group">
+            <label for="brand-name">Brand Name:</label>
+            <input type="text" id="brand-name" placeholder="Enter your Brand Name">
+        </div>
+        <div class="button-container">
+            <button id="search-btn">Generate Meta Tags</button>
+            <button id="refresh-btn">Refresh</button>
+        </div>
+    </div>
+</div>
+<!-- Styling for visual structure -->
+<style>
+    body {
+        background: linear-gradient(135deg, #300964, #190533);
+        font-family: sans-serif;
+        margin: 0;
+        padding: 20px;
+        color: white;
+    }
+
+    #word-search {
+        font-family: sans-serif;
+        color: white;
+        max-width: 1200px;
+        margin: 0 auto;
+        min-height: 80vh;
+        display: flex;
+        flex-direction: column;
+        position: relative;
+    }
+
+    .search-controls {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        margin: 20px 0;
+        padding: 40px;
+        border-radius: 10px;
+        background: rgba(77, 28, 138, 0.4);
+    }
+
+    .search-controls.centered {
+        position: absolute;
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -50%);
+        width: 80%;
+        max-width: 600px;
+    }
+
+    .search-controls h2 {
+        margin-top: 0;
+        margin-bottom: 20px;
+        color: white;
+        text-align: center;
+        font-size: 28px;
+    }
+
+    .input-group {
+        display: flex;
+        flex-direction: column;
+        width: 100%;
+        margin-bottom: 15px;
+    }
+
+    .input-group label {
+        margin-bottom: 5px;
+        font-size: 18px;
+        text-align: left;
+    }
+
+    input {
+        padding: 10px;
+        margin: 5px 0;
+        width: 100%;
+        border-radius: 5px;
+        border: 1px solid #ccc;
+        font-size: 16px;
+        box-sizing: border-box;
+    }
+
+    .button-container {
+        display: flex;
+        gap: 10px;
+        margin-top: 20px;
+    }
+
+    button {
+        padding: 12px 25px;
+        background: #4d1c8a;
+        color: white;
+        border: none;
+        border-radius: 5px;
+        cursor: pointer;
+        font-size: 16px;
+        transition: background 0.3s;
+    }
+
+    button:hover {
+        background: #350b70;
+    }
+
+    #response-output {
+        margin-top: 20px;
+        padding: 20px;
+        border-radius: 10px;
+        overflow: auto;
+        min-height: 300px;
+        position: relative;
+        background: rgba(30, 6, 72, 0.4);
+        display: none;
+    }
+
+    /* Loading screen styles */
+    .loading-container {
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+        align-items: center;
+        height: 100%;
+        width: 100%;
+        background: linear-gradient(135deg, #4d1c8a, #300964);
+        border-radius: 10px;
+        position: absolute;
+        top: 0;
+        left: 0;
+        z-index: 100;
+    }
+
+    .loading-title {
+        font-size: 32px;
+        font-weight: bold;
+        color: white;
+        margin-bottom: 10px;
+        text-align: center;
+    }
+
+    .loading-subtitle {
+        font-size: 18px;
+        color: rgba(255, 255, 255, 0.8);
+        margin-bottom: 40px;
+        text-align: center;
+    }
+
+    .spinner {
+        display: inline-block;
+        width: 80px;
+        height: 80px;
+        margin: 0 auto;
+    }
+
+    .spinner:after {
+        content: " ";
+        display: block;
+        width: 64px;
+        height: 64px;
+        margin: 8px;
+        border-radius: 50%;
+        border: 6px solid #ccc;
+        border-color: #ccc transparent #ccc transparent;
+        animation: spinner 1.2s linear infinite;
+    }
+
+    @keyframes spinner {
+        0% {
+            transform: rotate(0deg);
+        }
+
+        100% {
+            transform: rotate(360deg);
+        }
+    }
+
+    .meta-tags-container {
+        display: flex;
+        flex-direction: column;
+        width: 100%;
+    }
+
+    .meta-tag-section {
+        margin-bottom: 30px;
+    }
+
+    .meta-tag-label {
+        font-size: 22px;
+        font-weight: bold;
+        margin-bottom: 10px;
+        color: white;
+    }
+
+    .meta-tag-content {
+        background: rgba(77, 28, 138, 0.6);
+        padding: 20px;
+        border-radius: 10px;
+        font-size: 18px;
+        color: white;
+        position: relative;
+    }
+
+    .character-count {
+        position: absolute;
+        right: 15px;
+        bottom: 15px;
+        font-size: 14px;
+        font-style: italic;
+        color: rgba(255, 255, 255, 0.8);
+    }
+</style>
+
+<!-- JavaScript Fetch Logic -->
+<script>
+    // Center the search controls initially
+    document.addEventListener('DOMContentLoaded', function () {
+        document.querySelector('.search-controls').classList.add('centered');
+    });
+
+    document.getElementById('search-btn').addEventListener('click', function () {
+        const primaryKeyword = document.getElementById('primary-keyword').value.trim();
+        const secondaryKeyword = document.getElementById('secondary-keyword').value.trim();
+        const brandName = document.getElementById('brand-name').value.trim();
+
+        if (!primaryKeyword || !secondaryKeyword || !brandName) {
+            alert('Please fill in all fields!');
+            return;
+        }
+
+        // Move search controls to bottom by removing centered class
+        document.querySelector('.search-controls').classList.remove('centered');
+
+        // Show the response output area
+        const responseOutput = document.getElementById('response-output');
+        responseOutput.style.display = 'block';
+
+        // Show loading screen
+        responseOutput.innerHTML = `
+            <div class="loading-container">
+                <div class="loading-title">Creating Meta Tags...</div>
+                <div class="loading-subtitle">It may take a few seconds!</div>
+                <div class="spinner"></div>
+            </div>`;
+
+        fetch('https://fastapi-ashtech.azurewebsites.net/generate-meta-tags', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({
+                primary_keyword: primaryKeyword,
+                secondary_keyword: secondaryKeyword,
+                brand_name: brandName
+            })
+        })
+            .then(response => response.json())
+            .then(result => {
+                if (result.success && result.data) {
+                    document.getElementById('response-output').innerHTML = renderMetaTags(result.data);
+                } else {
+                    document.getElementById('response-output').innerHTML = 'Failed to generate meta tags.';
+                }
+            })
+            .catch(error => {
+                document.getElementById('response-output').innerHTML = 'Error occurred: ' + error;
+            });
+    });
+
+    // Add refresh button functionality
+    document.getElementById('refresh-btn').addEventListener('click', function () {
+        // Clear the input fields
+        document.getElementById('primary-keyword').value = '';
+        document.getElementById('secondary-keyword').value = '';
+        document.getElementById('brand-name').value = '';
+
+        // Hide response output
+        const responseOutput = document.getElementById('response-output');
+        responseOutput.style.display = 'none';
+        responseOutput.innerHTML = '';
+
+        // Move search controls back to center
+        document.querySelector('.search-controls').classList.add('centered');
+    });
+
+    function renderMetaTags(data) {
+        const friendlyTitle = data.friendly_title;
+        const metaDescription = data.meta_description;
+        
+        const titleCharCount = friendlyTitle.length;
+        const descriptionCharCount = metaDescription.length;
+
+        let html = `
+            <div class="meta-tags-container">
+                <div class="meta-tag-section">
+                    <div class="meta-tag-label">SEO Friendly Title:</div>
+                    <div class="meta-tag-content">
+                        ${friendlyTitle}
+                        <div class="character-count">Character count: ${titleCharCount}</div>
+                    </div>
+                </div>
+                
+                <div class="meta-tag-section">
+                    <div class="meta-tag-label">SEO Meta Description:</div>
+                    <div class="meta-tag-content">
+                        ${metaDescription}
+                        <div class="character-count">Character count: ${descriptionCharCount}</div>
+                    </div>
+                </div>
+            </div>`;
+
+        return html;
+    }
+</script>
