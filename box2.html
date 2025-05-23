@@ -10,7 +10,8 @@
         <div class="input-group">
             <label for="secondary-keyword">Secondary Keyword:</label>
             <input type="text" id="secondary-keyword" placeholder="Enter your Secondary Keyword">
-        </div>        <div class="input-group">
+        </div>
+        <div class="input-group">
             <label for="brand-name">Brand Name:</label>
             <input type="text" id="brand-name" placeholder="Enter your Brand Name">
         </div>
@@ -26,13 +27,13 @@
 </div>
 <!-- Styling for visual structure -->
 <style>
-    body {
+    /* body {
         background: linear-gradient(135deg, #300964, #190533);
         font-family: sans-serif;
         margin: 0;
         padding: 20px;
         color: white;
-    }
+    } */
 
     #word-search {
         font-family: sans-serif;
@@ -60,8 +61,8 @@
         top: 50%;
         left: 50%;
         transform: translate(-50%, -50%);
-        width: 80%;
-        max-width: 600px;
+        width: 100%;
+        /* max-width: 600px; */
     }
 
     .search-controls h2 {
@@ -125,6 +126,7 @@
         position: relative;
         background: rgba(30, 6, 72, 0.4);
         display: none;
+        align-content: center;
     }
 
     /* Loading screen styles */
@@ -194,7 +196,10 @@
     }
 
     .meta-tag-section {
-        margin-bottom: 30px;
+        margin-top: 20px;
+        margin-bottom: 20px;
+        display: flex;
+        flex-direction: row;
     }
 
     .meta-tag-label {
@@ -202,6 +207,7 @@
         font-weight: bold;
         margin-bottom: 10px;
         color: white;
+        width: 20%;
     }
 
     .meta-tag-content {
@@ -211,7 +217,10 @@
         font-size: 18px;
         color: white;
         position: relative;
-    }    .character-count {
+        width: 80%;
+    }
+
+    .character-count {
         position: absolute;
         right: 15px;
         bottom: 15px;
@@ -226,13 +235,13 @@
         margin-bottom: 15px;
         width: 100%;
     }
-    
+
     .checkbox-group label {
         margin-left: 10px;
         font-size: 16px;
         cursor: pointer;
     }
-    
+
     .custom-checkbox {
         width: 18px;
         height: 18px;
@@ -248,7 +257,8 @@
         document.querySelector('.search-controls').classList.add('centered');
     });
 
-    document.getElementById('search-btn').addEventListener('click', function () {        const primaryKeyword = document.getElementById('primary-keyword').value.trim();
+    document.getElementById('search-btn').addEventListener('click', function () {
+        const primaryKeyword = document.getElementById('primary-keyword').value.trim();
         const secondaryKeyword = document.getElementById('secondary-keyword').value.trim();
         const brandName = document.getElementById('brand-name').value.trim();
         const includeEmoji = document.getElementById('emoji-checkbox').checked;
@@ -277,7 +287,7 @@
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
-            },            body: JSON.stringify({
+            }, body: JSON.stringify({
                 primary_keyword: primaryKeyword,
                 secondary_keyword: secondaryKeyword,
                 brand_name: brandName,
@@ -316,7 +326,7 @@
     function renderMetaTags(data) {
         const friendlyTitle = data.friendly_title;
         const metaDescription = data.meta_description;
-        
+
         const titleCharCount = friendlyTitle.length;
         const descriptionCharCount = metaDescription.length;
 
