@@ -1,3 +1,6 @@
+<!-- jsPDF library for PDF generation -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/3.0.1/jspdf.umd.min.js"></script>
+
 <!-- HTML Input Section -->
 <div id="word-search">
     <div id="response-output"></div>
@@ -248,10 +251,34 @@
 
     .supporting-blogs-box li {
         margin-bottom: 10px;
+    }    .topic-group {
+        margin-bottom: 30px;
+    }
+    
+    .download-button {
+        margin-top: 30px;
+        padding: 12px 25px;
+        background: #38a169;
+        color: white;
+        border: none;
+        border-radius: 5px;
+        cursor: pointer;
+        font-size: 16px;
+        transition: background 0.3s;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 8px;
+        width: fit-content;
     }
 
-    .topic-group {
-        margin-bottom: 30px;
+    .download-button:hover {
+        background: #2f855a;
+    }
+    
+    .download-icon {
+        width: 18px;
+        height: 18px;
     }
 </style>
 
@@ -317,11 +344,9 @@
 
         // Move search controls back to center
         document.querySelector('.search-controls').classList.add('centered');
-    });
-
-    function renderTopicalMap(data) {
+    });    function renderTopicalMap(data) {
         let html = `
-            <div class="topical-map-container">
+            <div class="topical-map-container" id="topical-map-result">
                 <div class="topic-row">
                     <div class="money-keyword-column">
                         <div class="column-header">Money Keyword</div>
@@ -370,10 +395,133 @@
                             </div>
                         </div>
                     </div>
-                </div>`;
-        });
+                </div>`;        });
 
-        html += '</div>';
+        html += `
+            <button class="download-button" id="download-pdf">
+                <svg class="download-icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+                    <polyline points="7 10 12 15 17 10"></polyline>
+                    <line x1="12" y1="15" x2="12" y2="3"></line>
+                </svg>
+                Download as PDF
+            </button>
+        </div>`;
+        
+        // Add event listener after the HTML has been rendered
+        setTimeout(() => {
+            document.getElementById('download-pdf').addEventListener('click', generatePDF);
+        }, 100);
+        
         return html;
+    }
+        var specialElementHandlers = {
+'#editor': function (element, renderer) {
+    return true;
+}
+};
+    
+    function generatePDF() {
+        // Initialize jsPDF
+        const { jsPDF } = window.jspdf;
+        const doc = new jsPDF('p', 'pt', 'a4');
+        
+        // Get the money keyword
+        // const moneyKeyword = document.getElementById('word-input').value.trim();
+        
+        // // Set document properties
+        // doc.setFillColor(48, 25, 90); // Dark purple background
+        // doc.rect(0, 0, doc.internal.pageSize.getWidth(), doc.internal.pageSize.getHeight(), 'F');
+        
+        // // Set text color to white
+        // doc.setTextColor(255, 255, 255);
+        
+        // // Add title
+        // doc.setFontSize(24);
+        // doc.text('Topical Map', 40, 50);
+        
+        // // Add money keyword
+        // doc.setFontSize(18);
+        // doc.text(`Money Keyword: ${moneyKeyword}`, 40, 80);
+        
+        // // Add horizontal line
+        // doc.setDrawColor(255, 255, 255);
+        // doc.setLineWidth(1);
+        // doc.line(40, 95, doc.internal.pageSize.getWidth() - 40, 95);
+        
+        // // Get all pillar pages
+        // const pillarBoxes = document.querySelectorAll('.pillar-box');
+        // let yPosition = 120;
+        
+        // pillarBoxes.forEach((pillarBox, index) => {
+        //     // Add pillar title
+        //     doc.setFontSize(16);
+        //     doc.text(`Pillar ${index + 1}: ${pillarBox.innerText}`, 40, yPosition);
+        //     yPosition += 25;
+            
+        //     // Get supporting pages for this pillar
+        //     const supportingPages = document.querySelectorAll(`.topic-group[data-group="${index}"] .supporting-page-box`);
+            
+        //     if (supportingPages.length > 0) {
+        //         doc.setFontSize(14);
+        //         doc.text('Supporting Pages:', 60, yPosition);
+        //         yPosition += 20;
+                
+        //         doc.setFontSize(12);
+        //         supportingPages.forEach(page => {
+        //             doc.text(`• ${page.innerText}`, 80, yPosition);
+        //             yPosition += 20;
+        //         });
+        //     }
+            
+        //     // Get supporting blog topics for this pillar
+        //     const supportingTopics = document.querySelectorAll(`.topic-group[data-group="${index}"] .supporting-blogs-box li`);
+            
+        //     if (supportingTopics.length > 0) {
+        //         doc.setFontSize(14);
+        //         doc.text('Supporting Blog Topics:', 60, yPosition);
+        //         yPosition += 20;
+                
+        //         doc.setFontSize(12);
+        //         supportingTopics.forEach(topic => {
+        //             // Split long text into multiple lines if needed
+        //             const text = topic.innerText;
+        //             const lines = doc.splitTextToSize(text, doc.internal.pageSize.getWidth() - 160);
+                    
+        //             doc.text(`• ${lines[0]}`, 80, yPosition);
+        //             yPosition += 20;
+                    
+        //             // Add any additional lines with proper indentation
+        //             for (let i = 1; i < lines.length; i++) {
+        //                 doc.text(lines[i], 82, yPosition);
+        //                 yPosition += 20;
+        //             }
+        //         });
+        //     }
+            
+        //     // Add extra space between pillars
+        //     yPosition += 20;
+            
+        //     // Check if we need a new page
+        //     if (yPosition > doc.internal.pageSize.getHeight() - 60) {
+        //         doc.addPage();
+        //         doc.setFillColor(48, 25, 90); // Dark purple background
+        //         doc.rect(0, 0, doc.internal.pageSize.getWidth(), doc.internal.pageSize.getHeight(), 'F');
+        //         doc.setTextColor(255, 255, 255);
+        //         yPosition = 40;
+        //     }
+        // });
+        
+        // // Add footer with date
+        // doc.setFontSize(10);
+        // doc.setTextColor(200, 200, 200);
+        // doc.text(`Generated on ${new Date().toLocaleDateString()}`, 40, doc.internal.pageSize.getHeight() - 30);
+        
+        doc.fromHTML($('#content').html(), 15, 15, {
+            'width': 170,
+            'elementHandlers': specialElementHandlers
+        });
+        // Save the PDF
+        doc.save(`Topical_Map_${moneyKeyword.replace(/\s+/g, '_')}.pdf`);
     }
 </script>

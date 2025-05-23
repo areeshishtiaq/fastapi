@@ -31,6 +31,15 @@ Create friendly SEO title and description with:
 - Secondary keyword: [secondary_keyword]
 - Brand name: [brand_name]
 
+Instructions:
+SEO Friendly Title
+Format: Primary Keyword | Secondary Keyword + Power Word | Brand Name
+- Keep SEO Friendly Title Tag Between 55 to 60 Characters
+
+Meta Description
+Format: Brand Name - Use Primary keyword Somehwere
+- Keep SEO Friendly Title Tag Between 150 - 160 Characters
+
 Return the response in json format:
 {
     "friendly_title": "string",

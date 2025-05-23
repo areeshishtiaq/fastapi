@@ -10,10 +10,13 @@
         <div class="input-group">
             <label for="secondary-keyword">Secondary Keyword:</label>
             <input type="text" id="secondary-keyword" placeholder="Enter your Secondary Keyword">
-        </div>
-        <div class="input-group">
+        </div>        <div class="input-group">
             <label for="brand-name">Brand Name:</label>
             <input type="text" id="brand-name" placeholder="Enter your Brand Name">
+        </div>
+        <div class="checkbox-group">
+            <input type="checkbox" id="emoji-checkbox" class="custom-checkbox">
+            <label for="emoji-checkbox">Include emojis in meta tags</label>
         </div>
         <div class="button-container">
             <button id="search-btn">Generate Meta Tags</button>
@@ -208,15 +211,33 @@
         font-size: 18px;
         color: white;
         position: relative;
-    }
-
-    .character-count {
+    }    .character-count {
         position: absolute;
         right: 15px;
         bottom: 15px;
         font-size: 14px;
         font-style: italic;
         color: rgba(255, 255, 255, 0.8);
+    }
+
+    .checkbox-group {
+        display: flex;
+        align-items: center;
+        margin-bottom: 15px;
+        width: 100%;
+    }
+    
+    .checkbox-group label {
+        margin-left: 10px;
+        font-size: 16px;
+        cursor: pointer;
+    }
+    
+    .custom-checkbox {
+        width: 18px;
+        height: 18px;
+        cursor: pointer;
+        accent-color: #4d1c8a;
     }
 </style>
 
@@ -227,10 +248,10 @@
         document.querySelector('.search-controls').classList.add('centered');
     });
 
-    document.getElementById('search-btn').addEventListener('click', function () {
-        const primaryKeyword = document.getElementById('primary-keyword').value.trim();
+    document.getElementById('search-btn').addEventListener('click', function () {        const primaryKeyword = document.getElementById('primary-keyword').value.trim();
         const secondaryKeyword = document.getElementById('secondary-keyword').value.trim();
         const brandName = document.getElementById('brand-name').value.trim();
+        const includeEmoji = document.getElementById('emoji-checkbox').checked;
 
         if (!primaryKeyword || !secondaryKeyword || !brandName) {
             alert('Please fill in all fields!');
@@ -256,11 +277,11 @@
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
-            },
-            body: JSON.stringify({
+            },            body: JSON.stringify({
                 primary_keyword: primaryKeyword,
                 secondary_keyword: secondaryKeyword,
-                brand_name: brandName
+                brand_name: brandName,
+                emoji: includeEmoji
             })
         })
             .then(response => response.json())
@@ -277,11 +298,11 @@
     });
 
     // Add refresh button functionality
-    document.getElementById('refresh-btn').addEventListener('click', function () {
-        // Clear the input fields
+    document.getElementById('refresh-btn').addEventListener('click', function () {        // Clear the input fields
         document.getElementById('primary-keyword').value = '';
         document.getElementById('secondary-keyword').value = '';
         document.getElementById('brand-name').value = '';
+        document.getElementById('emoji-checkbox').checked = false;
 
         // Hide response output
         const responseOutput = document.getElementById('response-output');

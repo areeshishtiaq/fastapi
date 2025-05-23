@@ -44,6 +44,7 @@ class MetaTagsRequest(BaseModel):
     primary_keyword: str
     secondary_keyword: str
     brand_name: str
+    emoji: bool
 
 
 class ApiResponse(BaseModel):
@@ -157,6 +158,8 @@ async def generate_meta_tags(request: MetaTagsRequest) -> ApiResponse:
             .replace("[secondary_keyword]", request.secondary_keyword)
             .replace("[brand_name]", request.brand_name)
         )
+        if request.emoji:
+            customized_prompt += " Include emojis in the response."
 
         # Call OpenAI API
         response = client.chat.completions.create(
