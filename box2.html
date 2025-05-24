@@ -1,6 +1,7 @@
 <!-- HTML Input Section -->
 <div id="word-search">
     <div id="response-output"></div>
+    <div id="copied-toast" class="copied-toast">Copied to clipboard!</div>
     <div class="search-controls centered">
         <h2>Create SEO Friendly Meta Tags</h2>
         <div class="input-group">
@@ -248,6 +249,59 @@
         cursor: pointer;
         accent-color: #4d1c8a;
     }
+
+    .copy-button-container {
+        display: flex;
+        justify-content: center;
+        margin-top: 20px;
+    }
+
+    .copy-btn {
+        display: flex;
+        align-items: center;
+        padding: 12px 25px;
+        background: #4d1c8a;
+        color: white;
+        border: none;
+        border-radius: 5px;
+        cursor: pointer;
+        font-size: 16px;
+        transition: all 0.3s ease;
+    }
+
+    .copy-btn:hover {
+        background: #350b70;
+        transform: translateY(-2px);
+        box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+    }
+
+    .copy-btn:active {
+        transform: translateY(0);
+        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    }
+
+    .copy-icon {
+        margin-right: 8px;
+    }
+
+    .copied-toast {
+        position: fixed;
+        bottom: 20px;
+        left: 50%;
+        transform: translateX(-50%);
+        background: rgba(77, 28, 138, 0.9);
+        color: white;
+        padding: 10px 20px;
+        border-radius: 5px;
+        font-size: 16px;
+        opacity: 0;
+        transition: opacity 0.3s;
+        pointer-events: none;
+    }
+
+    .copied-toast.show {
+        opacity: 1;
+    }
 </style>
 
 <!-- JavaScript Fetch Logic -->
@@ -305,9 +359,7 @@
             .catch(error => {
                 document.getElementById('response-output').innerHTML = 'Error occurred: ' + error;
             });
-    });
-
-    // Add refresh button functionality
+    });    // Add refresh button functionality
     document.getElementById('refresh-btn').addEventListener('click', function () {        // Clear the input fields
         document.getElementById('primary-keyword').value = '';
         document.getElementById('secondary-keyword').value = '';
@@ -323,6 +375,39 @@
         document.querySelector('.search-controls').classList.add('centered');
     });
 
+    // Function to show the copied toast notification
+    function showCopiedToast() {
+        const toast = document.getElementById('copied-toast');
+        toast.classList.add('show');
+
+        setTimeout(() => {
+            toast.classList.remove('show');
+        }, 3000);
+    }
+
+    // Add event delegation for the copy button (since it's dynamically added)
+    document.addEventListener('click', function (event) {
+        if (event.target.closest('#copy-btn')) {
+            const responseOutput = document.getElementById('response-output');
+
+            // Get the content from the page
+            const friendlyTitle = responseOutput.querySelector('.meta-tag-section:first-child .meta-tag-content').childNodes[0].textContent.trim();
+            const metaDescription = responseOutput.querySelector('.meta-tag-section:nth-child(2) .meta-tag-content').childNodes[0].textContent.trim();
+
+            // Create formatted text for clipboard
+            const textToCopy = `SEO Friendly Title: ${friendlyTitle}\nSEO Meta Description: ${metaDescription}`;
+
+            // Copy to clipboard
+            navigator.clipboard.writeText(textToCopy)
+                .then(() => {
+                    showCopiedToast();
+                })
+                .catch(err => {
+                    console.error('Failed to copy: ', err);
+                });
+        }
+    });
+
     function renderMetaTags(data) {
         const friendlyTitle = data.friendly_title;
         const metaDescription = data.meta_description;
@@ -331,8 +416,7 @@
         const descriptionCharCount = metaDescription.length;
 
         let html = `
-            <div class="meta-tags-container">
-                <div class="meta-tag-section">
+            <div class="meta-tags-container">                <div class="meta-tag-section">
                     <div class="meta-tag-label">SEO Friendly Title:</div>
                     <div class="meta-tag-content">
                         ${friendlyTitle}
@@ -346,6 +430,12 @@
                         ${metaDescription}
                         <div class="character-count">Character count: ${descriptionCharCount}</div>
                     </div>
+                </div>
+                
+                <div class="copy-button-container">
+                    <button id="copy-btn" class="copy-btn">
+                        <span class="copy-icon">📋</span> Copy Meta Tags
+                    </button>
                 </div>
             </div>`;
 
